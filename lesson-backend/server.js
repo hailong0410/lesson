@@ -1,19 +1,27 @@
-// server.js
+// lesson-backend/server.js
+
 require('dotenv').config();
 const express      = require('express');
 const cors         = require('cors');
 const { execSync } = require('child_process');
 const path         = require('path');
-const OpenAI       = require('openai');
-const apiKey = process.env.OPENAI_API_KEY;
+const { OpenAI }   = require('openai');
+
 const app = express();
+
+// 1) Middleware cơ bản
 app.use(cors());
 app.use(express.json());
 
-// Khởi client OpenAI theo v4.x
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// 2) Serve static files từ public/
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper gọi retriever.py
+// 3) Khởi OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+// 4) Helper gọi retriever.py
 function retrieveChunks(topic, k = 5) {
   const safe = topic.replace(/"/g, '\\"');
   const cmd  = `python "${path.join(__dirname, 'retriever.py')}" "${safe}" ${k}`;
@@ -21,7 +29,7 @@ function retrieveChunks(topic, k = 5) {
   return JSON.parse(out);
 }
 
-// 1) Soạn giáo án
+// 5) API soạn giáo án
 app.post('/api/lesson-plan', async (req, res) => {
   const { topic, grade, duration } = req.body;
   let chunks = [];
@@ -63,13 +71,13 @@ IV. Đánh giá
   }
 });
 
-// 2) Tạo đề kiểm tra
+// 6) API tạo đề kiểm tra
 app.post('/api/generate-test', async (req, res) => {
   const { topics, grade, type, bloomLevels } = req.body;
-  const topicText = topics && topics.length
+  const topicText = topics?.length
     ? topics.join(', ')
     : 'GPT tự chọn các chủ đề phù hợp';
-  const bloomText = bloomLevels && bloomLevels.length
+  const bloomText = bloomLevels?.length
     ? bloomLevels.join(', ')
     : 'tất cả mức Bloom';
 
@@ -86,7 +94,6 @@ Yêu cầu:
 - Chia đều % câu cho các mức Bloom (nếu có).
 - Cuối đề xuất phần đáp án: liệt kê câu số – đáp án ABCD hoặc Đ/S.
 - Xuất dưới dạng plain text, đánh số liên tục.
-
 `.trim();
 
   try {
@@ -105,10 +112,10 @@ Yêu cầu:
   }
 });
 
-// 3) Đánh giá & Báo cáo học sinh
+// 7) API đánh giá học sinh
 app.post('/api/evaluate', async (req, res) => {
   const { names, scores } = req.body;
-  const nameList = names.join(', ');
+  const nameList  = names.join(', ');
   const scoreList = scores.map(s => `${s.name}|${s.score}`).join(', ');
 
   const prompt = `
@@ -121,7 +128,6 @@ Yêu cầu:
 - Phân loại mức độ (Giỏi, Khá, Trung bình, Yếu).
 - Gợi ý phương pháp cải thiện cho từng học sinh.
 - Xuất thành báo cáo ngắn gọn, mỗi học sinh 1 đoạn.
-
 `.trim();
 
   try {
@@ -140,7 +146,12 @@ Yêu cầu:
   }
 });
 
-// Khởi server
+// 8) Catch-all route để phục vụ index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 9) Khởi server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`);
