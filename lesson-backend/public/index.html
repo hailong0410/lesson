@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Giáo Viên Thông Minh</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 20px auto; }
+    section { border: 1px solid #ccc; padding: 16px; margin-bottom: 24px; border-radius: 4px; }
+    section h2 { margin-top: 0; }
+    label { display: block; margin: 8px 0; }
+    input, select, textarea, button { width: 100%; padding: 8px; box-sizing: border-box; }
+    pre { background: #f4f4f4; padding: 8px; overflow-x: auto; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Soạn giáo án -->
+  <section id="lesson-section">
+    <h2>1. Soạn Giáo Án</h2>
+    <label>Chủ đề (có thể để trống để AI tự chọn):<br>
+      <input type="text" id="lesson-topic" placeholder="Ví dụ: Cách mạng Tháng Tám"/>
+    </label>
+    <label>Cấp học:<br>
+      <select id="lesson-grade">
+        <option>THCS</option>
+        <option>THPT</option>
+        <option>Đại học</option>
+      </select>
+    </label>
+    <label>Thời lượng (phút):<br>
+      <input type="number" id="lesson-duration" value="45"/>
+    </label>
+    <button id="lesson-btn">Tạo giáo án</button>
+    <div id="lesson-output"></div>
+  </section>
+
+
+  <!-- 2. Tạo Đề Kiểm Tra -->
+  <section id="test-section">
+    <h2>2. Tạo Đề Kiểm Tra</h2>
+    <label>Các chủ đề (mỗi dòng 1 chủ đề, bỏ trống để AI tự chọn):<br>
+      <textarea id="test-topics" rows="3" placeholder="Cách mạng Tháng Tám\nPhong trào Đông Du"></textarea>
+    </label>
+    <label>Cấp học:<br>
+      <select id="test-grade">
+        <option>THCS</option>
+        <option>THPT</option>
+        <option>Đại học</option>
+      </select>
+    </label>
+    <label>Loại kiểm tra:<br>
+      <select id="test-type">
+        <option>15 phút</option>
+        <option>1 tiết</option>
+        <option>Học kỳ</option>
+      </select>
+    </label>
+    <fieldset>
+      <legend>Phân loại theo Bloom (chọn ít nhất 1):</legend>
+      <label><input type="checkbox" class="bloom" value="Nhận biết"/> Nhận biết</label>
+      <label><input type="checkbox" class="bloom" value="Thông hiểu"/> Thông hiểu</label>
+      <label><input type="checkbox" class="bloom" value="Vận dụng"/> Vận dụng</label>
+      <label><input type="checkbox" class="bloom" value="Vận dụng cao"/> Vận dụng cao</label>
+    </fieldset>
+    <button id="test-btn">Tạo đề kiểm tra</button>
+    <div id="test-output"></div>
+  </section>
+
+
+  <!-- 3. Đánh Giá & Báo Cáo -->
+  <section id="eval-section">
+    <h2>3. Đánh Giá & Báo Cáo Học Sinh</h2>
+    <label>Danh sách học sinh (mỗi tên trên 1 dòng):<br>
+      <textarea id="eval-names" rows="3" placeholder="Nguyễn Văn A\nTrần Thị B"></textarea>
+    </label>
+    <label>Nhập điểm từng học sinh (mỗi dòng `Tên|Điểm`):<br>
+      <textarea id="eval-scores" rows="3" placeholder="Nguyễn Văn A|8.5\nTrần Thị B|6.0"></textarea>
+    </label>
+    <button id="eval-btn">Phân tích & Báo cáo</button>
+    <div id="eval-output"></div>
+  </section>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
