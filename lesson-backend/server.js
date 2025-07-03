@@ -1,4 +1,9 @@
 // lesson-backend/server.js
+
+// 0) Gỡ bỏ bất kỳ biến DEBUG nào tránh path-to-regexp bug từ debug lib
+delete process.env.DEBUG;
+delete process.env.DEBUG_URL;
+
 require('dotenv').config();
 const express      = require('express');
 const cors         = require('cors');
@@ -23,7 +28,7 @@ const openai = new OpenAI({
 // 4) Helper gọi retriever.py
 function retrieveChunks(topic, k = 5) {
   const safe = topic.replace(/"/g, '\\"');
-  // nếu Render không có "python" thì sửa thành "python3"
+  // Trên Render có thể phải dùng python3 thay cho python
   const cmd  = `python3 "${path.join(__dirname, 'retriever.py')}" "${safe}" ${k}`;
   const out  = execSync(cmd, { encoding: 'utf-8' });
   return JSON.parse(out);
@@ -33,8 +38,8 @@ function retrieveChunks(topic, k = 5) {
 app.post('/api/lesson-plan', async (req, res) => {
   const { topic, grade, duration } = req.body;
   let chunks = [];
-  try { chunks = retrieveChunks(topic, 5); }
-  catch { /* nếu lỗi chạy retriever thì bỏ qua */ }
+  try { chunks = retrieveChunks(topic, 5) }
+  catch { /* bỏ qua nếu retriever lỗi */ }
 
   const contextText = chunks.length
     ? '\n\nDựa vào các đoạn tài liệu sau:\n' +
@@ -74,12 +79,8 @@ IV. Đánh giá
 // 6) API tạo đề kiểm tra
 app.post('/api/generate-test', async (req, res) => {
   const { topics, grade, type, bloomLevels } = req.body;
-  const topicText = topics?.length
-    ? topics.join(', ')
-    : 'GPT tự chọn các chủ đề phù hợp';
-  const bloomText = bloomLevels?.length
-    ? bloomLevels.join(', ')
-    : 'tất cả mức Bloom';
+  const topicText = topics?.length ? topics.join(', ') : 'GPT tự chọn các chủ đề phù hợp';
+  const bloomText = bloomLevels?.length ? bloomLevels.join(', ') : 'tất cả mức Bloom';
 
   const prompt = `
 Bạn là trợ lý tạo đề kiểm tra Lịch sử.
@@ -146,12 +147,16 @@ Yêu cầu:
   }
 });
 
-// 8) Catch-all chỉ cho GET không phải /api, trả về index.html
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).end();
+// 8) Catch‐all route (JS middleware) cho SPA
+app.use((req, res, next) => {
+  if (
+    req.method === 'GET' &&
+    !req.path.startsWith('/api') &&
+    !path.extname(req.path)
+  ) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
   }
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  next();
 });
 
 // 9) Khởi server
