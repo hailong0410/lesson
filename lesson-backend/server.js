@@ -1,5 +1,4 @@
 // lesson-backend/server.js
-
 require('dotenv').config();
 const express      = require('express');
 const cors         = require('cors');
@@ -24,7 +23,8 @@ const openai = new OpenAI({
 // 4) Helper gọi retriever.py
 function retrieveChunks(topic, k = 5) {
   const safe = topic.replace(/"/g, '\\"');
-  const cmd  = `python "${path.join(__dirname, 'retriever.py')}" "${safe}" ${k}`;
+  // nếu Render không có "python" thì sửa thành "python3"
+  const cmd  = `python3 "${path.join(__dirname, 'retriever.py')}" "${safe}" ${k}`;
   const out  = execSync(cmd, { encoding: 'utf-8' });
   return JSON.parse(out);
 }
@@ -34,7 +34,7 @@ app.post('/api/lesson-plan', async (req, res) => {
   const { topic, grade, duration } = req.body;
   let chunks = [];
   try { chunks = retrieveChunks(topic, 5); }
-  catch { chunks = []; }
+  catch { /* nếu lỗi chạy retriever thì bỏ qua */ }
 
   const contextText = chunks.length
     ? '\n\nDựa vào các đoạn tài liệu sau:\n' +
@@ -146,8 +146,11 @@ Yêu cầu:
   }
 });
 
-// 8) Catch-all route để phục vụ index.html
+// 8) Catch-all chỉ cho GET không phải /api, trả về index.html
 app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).end();
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
