@@ -1,0 +1,12 @@
+# node modules
+**/node_modules/
+
+# build output
+lesson-frontend/build/
+lesson-backend/public/
+
+# env files
+.env
+
+# OS files
+.DS_Store
